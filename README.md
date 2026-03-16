@@ -94,10 +94,10 @@ Just open it in any browser — your data stays in your browser, forever private
 git clone https://github.com/Pendrellvale/WorkTimeRecord.git
 
 # 用浏览器打开（无需任何构建步骤）
-open index.html
+open WorkTimeTracker.html
 ```
 
-或者直接 **[点击 index.html → 在浏览器中打开](WorkTimeTracker.html)**，完事。
+或者直接 **[点击 WorkTimeTracker.html → 在浏览器中打开](WorkTimeTracker.html)**，完事。
 
 ---
 
