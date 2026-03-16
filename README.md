@@ -4,7 +4,7 @@
 > *One file. Zero dependencies. Built for workers in Ontario, Canada.*
 
 ---
-
+## 访问： https://pendrellvale.github.io/WorkTimeRecord/
 ## 截图 · Screenshots
 
 ![image-20260317010001447](image-20260317010001447.png)
