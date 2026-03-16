@@ -97,7 +97,7 @@ git clone https://github.com/Pendrellvale/WorkTimeRecord.git
 open index.html
 ```
 
-或者直接 **[点击 index.html → 在浏览器中打开](index.html)**，完事。
+或者直接 **[点击 index.html → 在浏览器中打开](WorkTimeTracker.html)**，完事。
 
 ---
 
