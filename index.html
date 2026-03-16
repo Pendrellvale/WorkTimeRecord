@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkTime · Hours &amp; Pay Tracker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --p:#D64F72;--pl:#F7B8CB;--pll:#FFF0F5;--pd:#B33D5E;
+  --bg:#FFF5F9;--card:#fff;--text:#1E1A2E;--sub:#7B6E80;
+  --brd:#F2D4DF;--red:#EF4444;--green:#10B981;--orange:#F59E0B;
+  --pp-bg:#F0FDF4;--pp-brd:#86EFAC;--pp-text:#16A34A;
+  --pd-bg:#FFFBEB;--pd-brd:#FCD34D;--pd-text:#B45309;
+  --sh:0 4px 24px rgba(214,79,114,.08);--r:14px;--tr:.17s cubic-bezier(.4,0,.2,1)
+}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--pl);border-radius:4px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* Header */
+.hdr{background:linear-gradient(135deg,#D64F72 0%,#A83459 100%);padding:13px 22px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 18px rgba(168,52,89,.3);position:sticky;top:0;z-index:100}
+.hdr-left{display:flex;align-items:center;gap:13px}
+.hdr-logo{width:37px;height:37px;background:rgba(255,255,255,.17);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.hdr-title{color:#fff}
+.hdr-title h1{font-size:17px;font-weight:700;letter-spacing:-.3px;line-height:1.15}
+.hdr-title p{font-size:11px;opacity:.74;margin-top:1px}
+.hdr-right{display:flex;gap:7px;align-items:center}
+.hdr-btn{width:34px;height:34px;border-radius:8px;border:none;background:rgba(255,255,255,.14);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:var(--tr)}
+.hdr-btn:hover{background:rgba(255,255,255,.28);transform:translateY(-1px)}
+.hdr-btn:active{transform:scale(.95)}
+.lang-btn{height:29px;padding:0 11px;border-radius:8px;border:1.5px solid rgba(255,255,255,.34);background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-size:11px;font-weight:700;font-family:inherit;letter-spacing:.4px;transition:var(--tr)}
+.lang-btn:hover{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.6)}
+
+/* Layout */
+.main{display:grid;grid-template-columns:1fr 390px;gap:16px;padding:16px;max-width:1380px;margin:0 auto;align-items:start}
+@media(max-width:960px){.main{grid-template-columns:1fr}}
+@media(max-width:480px){.main{padding:10px;gap:10px}}
+
+/* Card */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+
+/* Calendar */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:15px 17px 5px}
+.cal-month{font-size:21px;font-weight:800;color:var(--text);letter-spacing:-.5px;cursor:pointer;display:flex;align-items:center;gap:6px;border-radius:8px;padding:3px 7px;margin:-3px -7px;transition:var(--tr);user-select:none}
+.cal-month:hover{background:var(--pll);color:var(--p)}
+.cal-month span{color:var(--p)}
+.cal-month .pick-arrow{font-size:11px;color:var(--sub);transition:var(--tr)}
+.cal-month:hover .pick-arrow{color:var(--p)}
+.cal-month.picker-open .pick-arrow{transform:rotate(180deg);color:var(--p)}
+.cal-right{display:flex;align-items:center;gap:7px}
+
+/* Month/Year Picker */
+.mpicker{padding:13px 14px 10px;border-top:1px solid var(--brd);display:none}
+.mpicker.open{display:block}
+.mpicker-year-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.mpicker-year{font-size:18px;font-weight:800;color:var(--text);cursor:pointer;padding:3px 8px;border-radius:7px;transition:var(--tr)}
+.mpicker-year:hover{background:var(--pll);color:var(--p)}
+.mpicker-year-inp{font-size:16px;font-weight:800;color:var(--p);border:1.5px solid var(--p);border-radius:7px;padding:3px 8px;width:80px;text-align:center;outline:none;font-family:inherit;display:none}
+.mpicker-year-inp:focus{box-shadow:0 0 0 3px rgba(214,79,114,.12)}
+.mpicker-ybtn{width:28px;height:28px;border-radius:7px;border:1.5px solid var(--brd);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--p);font-weight:800;transition:var(--tr)}
+.mpicker-ybtn:hover{background:var(--p);border-color:var(--p);color:#fff}
+.mpicker-months{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.mpicker-m{padding:7px 2px;border-radius:8px;border:1.5px solid transparent;background:transparent;cursor:pointer;font-size:12px;font-weight:600;color:var(--text);transition:var(--tr);text-align:center;font-family:inherit;line-height:1.2}
+.mpicker-m:hover{background:var(--pll);border-color:var(--pl);color:var(--p)}
+.mpicker-m.this-month{border-color:var(--p);color:var(--p)}
+.mpicker-m.cur-month{background:var(--p);color:#fff;border-color:var(--pd);font-weight:700}
+.today-btn{padding:0 11px;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;border-radius:7px;border:1.5px solid var(--brd);background:#fff;cursor:pointer;color:var(--p);transition:var(--tr);height:30px;font-family:inherit}
+.today-btn:hover{background:var(--pll);border-color:var(--pl)}
+.nav-btn{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--brd);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--p);transition:var(--tr);font-weight:700}
+.nav-btn:hover{background:var(--p);border-color:var(--p);color:#fff;transform:scale(1.07)}
+.nav-btn:active{transform:scale(.96)}
+
+.wdays{display:grid;grid-template-columns:repeat(7,1fr);padding:8px 13px 0;gap:3px}
+.wday{text-align:center;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.4px;padding:3px 0}
+
+.days{display:grid;grid-template-columns:repeat(7,1fr);padding:5px 13px 13px;gap:3px}
+.day{min-height:58px;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:var(--tr);padding:3px 2px;border:1.5px solid transparent;gap:2px;position:relative}
+.day:hover{background:var(--pll);border-color:var(--pl);transform:scale(1.055)}
+.day:active{transform:scale(.97)}
+.day.other{opacity:.25;pointer-events:none}
+.day.today{background:var(--pll);border-color:var(--p)!important}
+.day.today .dnum{color:var(--p)}
+.day.sel{background:var(--p)!important;border-color:var(--pd)!important;box-shadow:0 4px 14px rgba(214,79,114,.36);transform:scale(1.055)}
+.day.sel .dnum,.day.sel .dhrs,.day.sel .ddot,.day.sel .dstat,.day.sel .dpay-tag{color:#fff!important;background:rgba(255,255,255,.2)!important;border-color:transparent!important}
+/* Pay period days (green tint) */
+.day.pp-day{background:var(--pp-bg);border-color:var(--pp-brd)}
+.day.pp-day .dnum{color:var(--pp-text)}
+.day.pp-day:hover{background:#DCFCE7;border-color:#4ADE80}
+/* Payday itself (gold tint) */
+.day.pd-day{background:var(--pd-bg);border-color:var(--pd-brd)}
+.day.pd-day .dnum{color:var(--pd-text)}
+.day.pd-day:hover{background:#FEF3C7;border-color:#F59E0B}
+/* Holiday overrides green/gold */
+.day.holiday{background:linear-gradient(135deg,#FFE8E8,#FFD0D8)!important;border-color:#FFC0CC!important}
+.day.holiday .dnum{color:#C0395A!important}
+/* Selected always wins */
+.day.sel{background:var(--p)!important;border-color:var(--pd)!important}
+.day.weekend .dnum{color:var(--p)}
+.dnum{font-size:14px;font-weight:700;line-height:1;transition:var(--tr)}
+.dhrs{font-size:9px;font-weight:700;color:var(--p);background:var(--pll);padding:1px 5px;border-radius:7px;white-space:nowrap;transition:var(--tr)}
+.ddot{width:4px;height:4px;border-radius:50%;background:var(--p);transition:var(--tr);opacity:.5}
+.dstat{font-size:7px;background:#FFE0E6;color:var(--p);border-radius:3px;padding:1px 3px;font-weight:800;transition:var(--tr);max-width:46px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dpay-tag{font-size:7px;background:var(--pd-bg);color:var(--pd-text);border:1px solid var(--pd-brd);border-radius:3px;padding:1px 3px;font-weight:800;transition:var(--tr)}
+
+.legend{display:flex;gap:10px;padding:3px 15px 13px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--sub);font-weight:500}
+.leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* Month Banner */
+.month-banner{background:linear-gradient(135deg,var(--p) 0%,var(--pd) 100%);padding:10px 17px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.mb-item{text-align:center}
+.mb-val{font-size:15px;font-weight:800;color:#fff;line-height:1}
+.mb-lbl{font-size:9px;color:rgba(255,255,255,.72);text-transform:uppercase;letter-spacing:.4px;margin-top:1px;font-weight:600}
+.mb-div{width:1px;height:28px;background:rgba(255,255,255,.18)}
+
+/* Right Panel */
+.right{display:flex;flex-direction:column;gap:0}
+
+/* Tabs */
+.tabs{display:flex;padding:5px;background:var(--bg);border-radius:11px;gap:3px;margin:13px 15px}
+.tab{flex:1;padding:7px 4px;border-radius:8px;border:none;background:transparent;font-size:11.5px;font-weight:700;color:var(--sub);cursor:pointer;transition:var(--tr);font-family:inherit}
+.tab:hover{color:var(--p);background:var(--pll)}
+.tab.active{background:#fff;color:var(--p);box-shadow:0 2px 8px rgba(214,79,114,.12)}
+
+/* Day Tab */
+.day-hdr{padding:14px 17px;border-bottom:1px solid var(--brd)}
+.day-date-big{font-size:28px;font-weight:800;color:var(--p);line-height:1;letter-spacing:-.8px}
+.day-date-sub{font-size:11.5px;color:var(--sub);margin-top:3px}
+.day-badges{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.badge{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;border:1.5px solid;white-space:nowrap}
+.badge-hol{background:#FFF0F0;color:var(--red);border-color:#FFCDD2}
+.badge-hrs{background:var(--pll);color:var(--p);border-color:var(--pl)}
+.badge-pay{background:#ECFDF5;color:var(--green);border-color:#A7F3D0}
+.badge-ot{background:#FFFBEB;color:var(--orange);border-color:#FDE68A}
+
+.hol-toggle{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:9px;border:1.5px solid var(--brd);cursor:pointer;transition:var(--tr);margin:11px 17px 0}
+.hol-toggle:hover{border-color:var(--red);background:#FFF5F5}
+.hol-toggle.on{border-color:var(--red);background:#FFF5F5}
+.sw{width:37px;height:20px;border-radius:10px;background:var(--brd);position:relative;transition:all .28s;flex-shrink:0}
+.sw::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:all .28s;box-shadow:0 2px 4px rgba(0,0,0,.18)}
+.hol-toggle.on .sw{background:var(--red)}
+.hol-toggle.on .sw::after{left:19px}
+.sw-text{flex:1}
+.sw-title{font-size:12.5px;font-weight:700;color:var(--text)}
+.sw-sub{font-size:10px;color:var(--sub)}
+
+.entries-area{padding:10px 17px 0}
+.entry{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;border:1.5px solid var(--brd);margin-bottom:6px;background:var(--bg);transition:var(--tr)}
+.entry:hover{border-color:var(--pl);background:var(--pll)}
+.entry-info{flex:1;min-width:0}
+.entry-time{font-size:12.5px;font-weight:700;color:var(--text)}
+.entry-note{font-size:10.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry-hrs{font-size:11.5px;font-weight:800;color:var(--p);background:var(--pll);padding:2px 8px;border-radius:9px;flex-shrink:0}
+.entry-del{width:24px;height:24px;border-radius:6px;border:none;background:transparent;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:var(--tr);opacity:0;flex-shrink:0}
+.entry:hover .entry-del{opacity:.65}
+.entry-del:hover{opacity:1!important;background:#FFF0F0}
+
+/* Form */
+.form-wrap{padding:10px 17px 14px;border-top:1px solid var(--brd);margin-top:4px}
+.form-sec{font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.7px;padding:7px 0 6px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.flbl{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}
+.finp{padding:7px 10px;border-radius:8px;border:1.5px solid var(--brd);font-size:12.5px;font-family:inherit;color:var(--text);background:#fff;transition:var(--tr);outline:none;width:100%}
+.finp:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(214,79,114,.09)}
+.finp:hover{border-color:var(--pl)}
+.midnight-hint{font-size:9.5px;color:var(--p);font-style:italic;margin-top:-3px;margin-bottom:4px;display:none}
+.midnight-hint.show{display:block}
+/* Preset shift buttons */
+.presets{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.presets-lbl{font-size:9.5px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
+.preset-btn{padding:3px 9px;border-radius:6px;border:1.5px solid var(--brd);background:#fff;font-size:11px;font-weight:700;color:var(--p);cursor:pointer;font-family:inherit;transition:var(--tr)}
+.preset-btn:hover{background:var(--p);border-color:var(--p);color:#fff}
+/* Edit mode banner */
+.form-edit-banner{background:var(--pll);border:1.5px solid var(--pl);border-radius:8px;padding:6px 11px;margin-bottom:8px;display:none;align-items:center;justify-content:space-between;font-size:11.5px;font-weight:700;color:var(--p)}
+/* Edit button on entries */
+.entry-edit{width:24px;height:24px;border-radius:6px;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:var(--tr);opacity:0;flex-shrink:0}
+.entry:hover .entry-edit{opacity:.65}
+.entry-edit:hover{opacity:1!important;background:var(--pll)}
+.entry.entry-editing{border-color:var(--p)!important;background:var(--pll)!important}
+/* YTD box */
+.ytd-box{border-radius:10px;border:1.5px solid var(--brd);overflow:hidden;margin-bottom:12px}
+.ytd-hdr{padding:8px 13px;background:linear-gradient(135deg,var(--bg),var(--pll));border-bottom:1px solid var(--brd);font-size:11px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.4px}
+.ytd-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.ytd-col{text-align:center;padding:9px 6px;border-right:1px solid var(--brd)}
+.ytd-col:last-child{border-right:none}
+.ytd-col-val{font-size:14px;font-weight:800;color:var(--text);line-height:1;margin-bottom:3px}
+.ytd-col-lbl{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+/* Period progress */
+.period-prog{margin-top:7px}
+.period-prog-bar{height:5px;border-radius:3px;background:var(--brd);overflow:hidden;margin-top:3px}
+.period-prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--p),var(--pd))}
+.period-prog-lbl{display:flex;justify-content:space-between;font-size:9px;color:var(--sub);margin-top:2px;font-weight:600}
+.btn-row{display:flex;gap:7px;margin-top:4px}
+.btn{padding:8px 16px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-p{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(214,79,114,.3)}
+.btn-p:active{transform:scale(.97)}
+.btn-g{background:#fff;color:var(--sub);border:1.5px solid var(--brd)}
+.btn-g:hover{background:var(--pll);border-color:var(--pl);color:var(--p)}
+.btn-sm{padding:6px 12px;font-size:11.5px}
+.btn-danger{background:#fff;color:var(--red);border:1.5px solid #FFCDD2}
+.btn-danger:hover{background:#FFF0F0;border-color:var(--red)}
+
+/* Empty State */
+.empty{text-align:center;padding:24px 18px;color:var(--sub)}
+.empty-ico{font-size:36px;margin-bottom:7px;opacity:.38}
+.empty-txt{font-size:12.5px;line-height:1.6}
+
+/* Payroll Tab */
+.pay-content{padding:12px 17px}
+
+/* Payslip list */
+.payslip-list-wrap{max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-bottom:10px;padding-right:2px}
+.ps-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:1.5px solid var(--brd);cursor:pointer;transition:var(--tr);background:var(--bg)}
+.ps-item:hover{border-color:var(--pl);background:var(--pll)}
+.ps-item.active{background:var(--p);border-color:var(--pd);box-shadow:0 3px 10px rgba(214,79,114,.25)}
+.ps-item.active .ps-date,.ps-item.active .ps-net,.ps-item.active .ps-tips{color:#fff!important}
+.ps-dot{width:8px;height:8px;border-radius:50%;background:var(--brd);flex-shrink:0;transition:var(--tr)}
+.ps-item.active .ps-dot{background:#fff}
+.ps-info{flex:1;min-width:0}
+.ps-date{font-size:12.5px;font-weight:700;color:var(--text)}
+.ps-meta{display:flex;gap:8px;margin-top:2px;flex-wrap:wrap}
+.ps-net{font-size:11px;font-weight:700;color:var(--green)}
+.ps-tips{font-size:11px;color:var(--orange)}
+.ps-del{width:22px;height:22px;border-radius:5px;border:none;background:transparent;color:var(--sub);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;opacity:0;transition:var(--tr)}
+.ps-item:hover .ps-del{opacity:.6}
+.ps-del:hover{opacity:1!important;color:var(--red);background:#FFF0F0}
+
+/* Payslip detail */
+.ps-detail{border-radius:10px;border:1.5px solid var(--brd);overflow:hidden;margin-bottom:12px}
+.ps-detail-hdr{padding:9px 13px;background:linear-gradient(135deg,var(--bg),var(--pll));border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.ps-detail-lbl{font-size:11.5px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.4px}
+.ps-detail-body{padding:10px 13px}
+.dr{display:flex;justify-content:space-between;align-items:center;padding:2.5px 0}
+.dr-lbl{font-size:11.5px;color:var(--sub)}
+.dr-val{font-size:11.5px;font-weight:700;color:var(--text)}
+.dr.sep{border-top:1px solid var(--brd);margin-top:5px;padding-top:7px}
+.dr-lbl-big{font-size:12.5px;font-weight:700;color:var(--text)}
+.dr-val-hi{font-size:14px;font-weight:800;color:var(--green)}
+.dr-val-act{font-size:14px;font-weight:800;color:var(--p)}
+.dr-val-diff-pos{font-size:12px;font-weight:700;color:var(--green)}
+.dr-val-diff-neg{font-size:12px;font-weight:700;color:var(--red)}
+/* Pay comparison block */
+.pay-compare{margin-top:8px;border-radius:9px;overflow:hidden;border:1.5px solid var(--brd)}
+.pay-compare-title{font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.6px;padding:7px 12px;background:var(--bg);border-bottom:1px solid var(--brd)}
+.pay-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pay-compare-col{padding:10px 12px;text-align:center}
+.pay-compare-col:first-child{border-right:1px solid var(--brd)}
+.pay-compare-col-lbl{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.pay-compare-col-val{font-size:17px;font-weight:800;line-height:1;margin-bottom:3px}
+.pay-compare-col-sub{font-size:10px;color:var(--sub)}
+.pay-compare-diff{padding:7px 12px;border-top:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center;background:var(--bg)}
+.pay-compare-diff-lbl{font-size:11.5px;color:var(--sub)}
+.diff-pos{font-size:13px;font-weight:800;color:var(--green)}
+.diff-neg{font-size:13px;font-weight:800;color:var(--red)}
+.diff-zero{font-size:13px;font-weight:800;color:var(--sub)}
+
+/* Add payday form */
+.add-payday-form{border-radius:10px;border:1.5px solid var(--brd);overflow:hidden;margin-bottom:12px}
+.add-payday-hdr{padding:9px 13px;background:var(--bg);border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:var(--tr)}
+.add-payday-hdr:hover{background:var(--pll)}
+.add-payday-hdr-title{font-size:12px;font-weight:700;color:var(--p)}
+.add-payday-body{padding:12px 13px;display:none}
+.add-payday-body.open{display:block}
+
+/* Upcoming periods */
+.pp{border-radius:10px;border:1.5px solid var(--brd);overflow:hidden;margin-bottom:10px;transition:var(--tr)}
+.pp:hover{border-color:var(--pl);box-shadow:0 3px 12px rgba(214,79,114,.09)}
+.pp-hdr{padding:9px 13px;background:linear-gradient(135deg,var(--bg),var(--pll));display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--brd)}
+.pp-lbl{font-size:11.5px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.4px}
+.pp-dates{font-size:10px;color:var(--sub)}
+.pp-body{padding:10px 13px}
+.pr{display:flex;justify-content:space-between;align-items:center;padding:2.5px 0}
+.pr-lbl{font-size:11.5px;color:var(--sub)}
+.pr-val{font-size:11.5px;font-weight:700;color:var(--text)}
+.pr.sep{border-top:1px solid var(--brd);margin-top:5px;padding-top:7px}
+.pr-lbl-big{font-size:12.5px;font-weight:700;color:var(--text)}
+.pr-val-gross{font-size:15px;font-weight:800;color:var(--p)}
+.pr-val-net{font-size:14px;font-weight:800;color:var(--green)}
+.tax-box{margin-top:7px;padding:8px 10px;background:var(--bg);border-radius:8px;border:1px dashed var(--brd)}
+.tax-title-row{display:flex;align-items:center;justify-content:space-between}
+.tax-title{font-size:9.5px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}
+.tax-toggle{background:none;border:none;font-size:10.5px;font-weight:700;color:var(--p);cursor:pointer;font-family:inherit;padding:0}
+.tax-rows{overflow:hidden;max-height:0;transition:max-height .27s ease}
+.tax-rows.open{max-height:200px}
+.pay-note{font-size:9.5px;color:var(--sub);text-align:center;padding:4px 0 10px;line-height:1.5;font-style:italic}
+
+/* No payday */
+.no-payday{text-align:center;padding:20px 18px}
+.no-payday-ico{font-size:36px;margin-bottom:8px;opacity:.38}
+.no-payday-txt{font-size:12.5px;color:var(--sub);line-height:1.6}
+
+/* Settings Tab */
+.set-content{padding:13px 17px}
+.set-section{margin-bottom:16px}
+.set-section-title{font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.6px;margin-bottom:9px}
+.set-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--brd)}
+.set-row:last-child{border-bottom:none}
+.set-info{flex:1}
+.set-lbl{font-size:12.5px;font-weight:600;color:var(--text)}
+.set-sub{font-size:10.5px;color:var(--sub);margin-top:1px}
+.wage-wrap{position:relative;width:125px}
+.wage-sym{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12.5px;font-weight:700;color:var(--p)}
+.wage-inp{padding-left:20px!important;width:125px}
+.set-sel{width:125px;appearance:none;padding-right:26px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23D64F72' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.stat-hol-toggle{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:9px;border:1.5px solid var(--brd);cursor:pointer;transition:var(--tr);margin-top:7px}
+.stat-hol-toggle:hover{border-color:var(--p);background:var(--pll)}
+.stat-hol-toggle.on{border-color:var(--p);background:var(--pll)}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;padding:11px 18px;border-radius:10px;background:#1E1A2E;color:#fff;font-size:12.5px;font-weight:600;box-shadow:0 7px 28px rgba(0,0,0,.2);transform:translateY(70px);opacity:0;transition:all .26s cubic-bezier(.34,1.5,.64,1);z-index:9999;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{background:linear-gradient(135deg,#10B981,#059669)}
+.toast.err{background:linear-gradient(135deg,#EF4444,#DC2626)}
+
+@media(max-width:480px){
+  .cal-month{font-size:17px}.day{min-height:46px}.dnum{font-size:12px}.dhrs{font-size:8px}
+  .tabs{margin:10px 10px}.form-row{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo">🕐</div>
+    <div class="hdr-title">
+      <h1 id="hdrTitle">WorkTime Tracker</h1>
+      <p id="hdrSub">Ontario, Canada · Hours &amp; Pay</p>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">中文</button>
+    <button class="hdr-btn" id="exportBtn" onclick="exportData()" title="Export">📤</button>
+    <button class="hdr-btn" id="importBtn" onclick="importData()" title="Import">📥</button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="left">
+    <div class="card">
+      <div class="cal-nav">
+        <div class="cal-month" id="calTitle" onclick="toggleMonthPicker()"></div>
+        <div class="cal-right">
+          <button class="today-btn" id="todayBtn" onclick="goToday()">Today</button>
+          <div style="display:flex;gap:6px" id="calNavBtns">
+            <button class="nav-btn" onclick="prevMonth()">&#8249;</button>
+            <button class="nav-btn" onclick="nextMonth()">&#8250;</button>
+          </div>
+        </div>
+      </div>
+      <div class="mpicker" id="monthPicker">
+        <div class="mpicker-year-row">
+          <button class="mpicker-ybtn" onclick="pickerPrevYear()">&#8249;</button>
+          <span class="mpicker-year" id="pickerYearLbl" onclick="editPickerYear()"></span>
+          <input class="mpicker-year-inp" id="pickerYearInp" type="number" min="2000" max="2099"
+            onblur="confirmPickerYear()" onkeydown="if(event.key==='Enter')confirmPickerYear();if(event.key==='Escape')cancelPickerYear()">
+          <button class="mpicker-ybtn" onclick="pickerNextYear()">&#8250;</button>
+        </div>
+        <div class="mpicker-months" id="pickerMonths"></div>
+      </div>
+      <div id="calBody">
+      <div class="wdays" id="wdays"></div>
+      <div class="days" id="daysGrid"></div>
+      </div>
+      <div class="month-banner" id="monthBanner"></div>
+      <div class="legend" id="calLegend"></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card">
+      <div style="padding-top:13px">
+        <div class="tabs">
+          <button class="tab active" id="tab-day" onclick="switchTab('day')"></button>
+          <button class="tab" id="tab-payroll" onclick="switchTab('payroll')"></button>
+          <button class="tab" id="tab-settings" onclick="switchTab('settings')"></button>
+        </div>
+      </div>
+
+      <!-- DAY TAB -->
+      <div id="tab-day-content">
+        <div class="day-hdr">
+          <div class="day-date-big" id="dayDateBig"></div>
+          <div class="day-date-sub" id="dayDateSub"></div>
+          <div class="day-badges" id="dayBadges"></div>
+        </div>
+        <div class="hol-toggle" id="holToggle" onclick="toggleHoliday()">
+          <div class="sw" id="holSw"></div>
+          <div class="sw-text">
+            <div class="sw-title" id="holTitle"></div>
+            <div class="sw-sub" id="holSub"></div>
+          </div>
+          <span id="holTag" style="display:none;font-size:10px;font-weight:800;color:var(--red)"></span>
+        </div>
+        <div class="entries-area" id="entriesArea"></div>
+        <div class="form-wrap" id="formWrap">
+          <div class="form-edit-banner" id="editBanner">
+            <span id="editBannerTxt"></span>
+            <button class="btn btn-g btn-sm" onclick="cancelEditEntry()" style="padding:3px 10px;font-size:11px" id="cancelEditBtn"></button>
+          </div>
+          <div class="form-sec" id="formSecLbl"></div>
+          <div class="presets" id="presetsRow">
+            <span class="presets-lbl" id="presetLbl"></span>
+            <button class="preset-btn" onclick="fillPreset(8)">8h</button>
+            <button class="preset-btn" onclick="fillPreset(7.5)">7.5h</button>
+            <button class="preset-btn" onclick="fillPreset(7)">7h</button>
+            <button class="preset-btn" onclick="fillPreset(6)">6h</button>
+            <button class="preset-btn" onclick="fillPreset(4)">4h</button>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label class="flbl" id="lblStart"></label><input class="finp" type="time" id="inpStart" onchange="checkMidnight()"></div>
+            <div class="fg"><label class="flbl" id="lblEnd"></label><input class="finp" type="time" id="inpEnd" onchange="checkMidnight()"></div>
+          </div>
+          <div class="midnight-hint" id="midnightHint"></div>
+          <div class="fg" style="margin-bottom:8px"><label class="flbl" id="lblNote"></label><input class="finp" type="text" id="inpNote" maxlength="60"></div>
+          <div class="btn-row">
+            <button class="btn btn-p" onclick="addEntry()" style="flex:1" id="btnAdd"></button>
+            <button class="btn btn-g btn-sm" onclick="clearForm()" id="btnClear"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYROLL TAB -->
+      <div id="tab-payroll-content" style="display:none">
+        <div class="pay-content" id="payrollContent"></div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div id="tab-settings-content" style="display:none">
+        <div class="set-content" id="settingsContent"></div>
+      </div>
+    </div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+//  TRANSLATIONS
+// ══════════════════════════════════════
+const L = {
+en:{
+  appName:'WorkTime Tracker',appSub:'Ontario, Canada · Hours & Pay',today:'Today',
+  tabDay:'📅 Day',tabPayroll:'💰 Payroll',tabSettings:'⚙️ Settings',
+  addWork:'Add Work Time',startTime:'Start Time',endTime:'End Time',
+  note:'Note (optional)',notePh:'e.g. Shift, Overtime…',addEntry:'+ Add Entry',clear:'Clear',
+  midnightHint:'⏰ Crosses midnight — +24h counted',
+  markHol:'Mark as Holiday / Stat Day',holSub:'Worked hours paid at {r}× rate',
+  noEntries:'No work entries yet.\nAdd your hours below.',
+  months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+  monthsS:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  days:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+  legToday:'Today',legSel:'Selected',legHol:'Holiday',legWork:'Has Work',
+  legPeriod:'Pay Period',legPayday:'Payday',
+  workDays:'Unpaid Days',totalHrs:'Unpaid Hours',holidays:'Holidays',estGross:'Unpaid Est.',unpaidNote:'Excl. paid periods',
+  // Payroll
+  addPaydayRec:'+ Record Payday',paydayDate:'Payday Date',netReceived:'Net Pay Received',
+  tipsReceived:'Tips Received',paydayNote:'Note',savePayday:'Save Record',
+  payslipHist:'Payslip History',noPayslips:'No payslips recorded yet.\nClick "+ Record Payday" to add one.',
+  periodCovered:'Pay Period Covered',hoursLogged:'Hours Logged',
+  regHrs:'Regular',otHrs:'Overtime',holHrs:'Holiday',
+  estGrossPay:'Est. Gross Pay',estNetPay:'Est. Net (Calc.)',
+  actualNet:'Actual Net (Payslip)',tips:'Tips',
+  totalTakeHome:'Total Take-Home',diffLabel:'Difference',
+  compareSection:'Pay Comparison',
+  upcomingEst:'Upcoming Estimates',lastPayday:'Last Payday',
+  currentPeriod:'Current Period',nextPeriod:'Next Period',
+  regular:'Regular',overtime:'Overtime',holiday:'Holiday',
+  grossPay:'Gross Pay',estDed:'Est. Deductions (~{r}%)',
+  federal:'Federal Income Tax',provincial:'Ontario Provincial Tax',
+  cpp:'CPP Contributions',ei:'EI Premiums',
+  totalDed:'Total Deductions',estNet:'Est. Net Pay',
+  details:'▾ Details',hide:'▴ Hide',
+  taxNote:'⚠️ Tax estimates use Ontario 2025 rates. Actual taxes may vary.',
+  noHrsLogged:'No hours logged for this period yet.',
+  selectPayday:'Set a last payday below to estimate upcoming periods.',
+  wageSettings:'💼 Wage Settings',baseWage:'Base Hourly Wage',wageSub:'Ontario min. wage 2025: $17.20/h',
+  otThreshold:'Weekly Overtime Threshold',otSub:'Ontario ESA: 44 hrs/week',
+  weekStarts:'Work Week Starts',weekSub:'For overtime calculation',
+  holRate:'Holiday Pay Rate',holRateSub:'Multiplier for holiday hours',
+  monday:'Monday',sunday:'Sunday',
+  statHolSec:'📅 Ontario Stat Holidays',
+  statHolDesc:'Auto-mark Ontario statutory holidays. Work on these days is paid at the holiday rate.',
+  autoStatHol:'Auto-mark Ontario Stat Holidays',autoStatHolSub:'2024–2027 stat holidays included',
+  dataSec:'🗑️ Data',clearData:'Clear All Work Data',clearDataSub:'Remove all work hours (cannot undo)',
+  clearPaydays:'Clear Payday Records',clearPaydaysSub:'Remove all payslip history',
+  clearBtn:'Clear',
+  markedHol:'Marked as holiday — {r}× rate applies',unmarkedHol:'Holiday mark removed',
+  autoStatOn:'Stat holidays auto-marked',autoStatOff:'Auto stat holidays disabled',
+  entryAdded:'Added {h} ✓',entryRemoved:'Entry removed',
+  paydaySaved:'Payday record saved ✓',paydayDeleted:'Payslip deleted',
+  settingSaved:'Setting saved ✓',exported:'Data exported ✓',imported:'Data imported ✓',
+  invalidFile:'Invalid file format',enterTimes:'Enter both start and end time',
+  invalidRange:'Invalid time range',tooLong:'Shift cannot exceed 24 hours',
+  confirmClear:'Clear ALL work data? Cannot undo.',confirmClearPd:'Delete this payslip record?',
+  confirmClearPaydays:'Clear all payday records? Cannot undo.',
+  daysLbl:'day',daysLblP:'days',langSwitch:'中文',
+  holTagLabel:'Ontario Stat',statTag:'Stat',
+  noPaydayForUpcoming:'No payday records found. Add a payday record above, or set "Last Payday" below.',
+  ytdTitle:'Year-to-Date Summary',ytdHours:'Total Hours',ytdGross:'Est. Gross',ytdPaid:'Actual Paid',
+  presetShift:'Quick:',editEntry:'Edit Entry',cancelEdit:'Cancel',updateEntry:'Update',
+  periodProgress:'Progress',daysIn:'days in',daysLeft:'left',
+},
+zh:{
+  appName:'工时记录',appSub:'安大略省，加拿大 · 工时与薪酬',today:'今天',
+  tabDay:'📅 当日',tabPayroll:'💰 薪酬',tabSettings:'⚙️ 设置',
+  addWork:'添加工作时间',startTime:'开始时间',endTime:'结束时间',
+  note:'备注（可选）',notePh:'例：班次、加班…',addEntry:'+ 添加记录',clear:'清除',
+  midnightHint:'⏰ 跨越午夜 — 计入次日（+24小时）',
+  markHol:'标记为假期 / 法定节假日',holSub:'工作时间将按 {r}× 薪酬计算',
+  noEntries:'暂无工时记录\n在下方添加工作时间',
+  months:['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
+  monthsS:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+  days:['日','一','二','三','四','五','六'],
+  legToday:'今天',legSel:'已选',legHol:'假期',legWork:'有记录',
+  legPeriod:'薪酬周期',legPayday:'发薪日',
+  workDays:'待发天数',totalHrs:'待发工时',holidays:'假期天',estGross:'待发预估',unpaidNote:'已扣除已发薪周期',
+  addPaydayRec:'+ 记录发薪',paydayDate:'发薪日期',netReceived:'实收工资',
+  tipsReceived:'小费',paydayNote:'备注',savePayday:'保存记录',
+  payslipHist:'工资单记录',noPayslips:'暂无工资单记录\n点击"+ 记录发薪"添加',
+  periodCovered:'薪酬周期',hoursLogged:'记录工时',
+  regHrs:'正常',otHrs:'加班',holHrs:'假期',
+  estGrossPay:'预估税前工资',estNetPay:'预估税后（计算）',
+  actualNet:'实收（工资单）',tips:'小费',
+  totalTakeHome:'实收合计',diffLabel:'差额',
+  compareSection:'工资对比',
+  upcomingEst:'预估薪酬',lastPayday:'上次发薪日',
+  currentPeriod:'当前周期',nextPeriod:'下一周期',
+  regular:'正常工时',overtime:'加班工时',holiday:'假期工时',
+  grossPay:'税前工资',estDed:'预估扣除（约{r}%）',
+  federal:'联邦所得税',provincial:'安大略省税',
+  cpp:'CPP 养老金',ei:'EI 就业保险',
+  totalDed:'合计扣除',estNet:'预估税后净收入',
+  details:'▾ 明细',hide:'▴ 收起',
+  taxNote:'⚠️ 税费估算基于安大略省2025年税率，实际税额因个人情况而异。',
+  noHrsLogged:'本周期暂未记录工时。',
+  selectPayday:'在下方设置上次发薪日以预估薪酬周期。',
+  wageSettings:'💼 薪资设置',baseWage:'基础时薪',wageSub:'安大略省2025年最低工资：$17.20/小时',
+  otThreshold:'每周加班门槛',otSub:'安大略省ESA：每周44小时',
+  weekStarts:'工作周起始日',weekSub:'用于加班工时计算',
+  holRate:'假期薪酬倍率',holRateSub:'假期工时的薪酬乘数',
+  monday:'星期一',sunday:'星期日',
+  statHolSec:'📅 安大略省法定节假日',
+  statHolDesc:'自动标记安大略省法定节假日，标记日的工时将按假期倍率计算。',
+  autoStatHol:'自动标记法定节假日',autoStatHolSub:'含 2024–2027 年节假日',
+  dataSec:'🗑️ 数据管理',clearData:'清除所有工时数据',clearDataSub:'删除全部工时记录（不可撤销）',
+  clearPaydays:'清除工资单记录',clearPaydaysSub:'删除全部工资单历史',
+  clearBtn:'清除',
+  markedHol:'已标记为假期 — 按 {r}× 计算薪酬',unmarkedHol:'已取消假期标记',
+  autoStatOn:'法定节假日已自动标记',autoStatOff:'已关闭自动标记',
+  entryAdded:'已添加 {h} ✓',entryRemoved:'已删除记录',
+  paydaySaved:'工资单已保存 ✓',paydayDeleted:'已删除工资单',
+  settingSaved:'设置已保存 ✓',exported:'数据已导出 ✓',imported:'数据已导入 ✓',
+  invalidFile:'文件格式无效',enterTimes:'请输入开始和结束时间',
+  invalidRange:'时间范围无效',tooLong:'班次不能超过24小时',
+  confirmClear:'确定清除所有工时数据？不可撤销。',confirmClearPd:'确认删除此工资单？',
+  confirmClearPaydays:'确认清除所有工资单记录？不可撤销。',
+  daysLbl:'天',daysLblP:'天',langSwitch:'EN',
+  holTagLabel:'法定节假日',statTag:'法定',
+  noPaydayForUpcoming:'暂无发薪记录，请在上方添加，或在下方手动设置"上次发薪日"。',
+  ytdTitle:'本年度汇总',ytdHours:'总工时',ytdGross:'预估税前',ytdPaid:'实收合计',
+  presetShift:'快填:',editEntry:'编辑记录',cancelEdit:'取消',updateEntry:'更新',
+  periodProgress:'周期进度',daysIn:'天已过',daysLeft:'天剩余',
+}};
+
+const STAT_HOL = {
+  '2024-01-01':"New Year's Day",'2024-02-19':"Family Day",'2024-03-29':"Good Friday",
+  '2024-05-20':"Victoria Day",'2024-07-01':"Canada Day",'2024-09-02':"Labour Day",
+  '2024-10-14':"Thanksgiving",'2024-12-25':"Christmas Day",'2024-12-26':"Boxing Day",
+  '2025-01-01':"New Year's Day",'2025-02-17':"Family Day",'2025-04-18':"Good Friday",
+  '2025-05-19':"Victoria Day",'2025-07-01':"Canada Day",'2025-09-01':"Labour Day",
+  '2025-10-13':"Thanksgiving",'2025-12-25':"Christmas Day",'2025-12-26':"Boxing Day",
+  '2026-01-01':"New Year's Day",'2026-02-16':"Family Day",'2026-04-03':"Good Friday",
+  '2026-05-18':"Victoria Day",'2026-07-01':"Canada Day",'2026-09-07':"Labour Day",
+  '2026-10-12':"Thanksgiving",'2026-12-25':"Christmas Day",'2026-12-26':"Boxing Day",
+  '2027-01-01':"New Year's Day",'2027-02-15':"Family Day",'2027-03-26':"Good Friday",
+  '2027-05-24':"Victoria Day",'2027-07-01':"Canada Day",'2027-09-06':"Labour Day",
+  '2027-10-11':"Thanksgiving",'2027-12-25':"Christmas Day",'2027-12-27':"Boxing Day",
+};
+const STAT_HOL_ZH = {"New Year's Day":"元旦","Family Day":"家庭日","Good Friday":"耶稣受难日","Victoria Day":"维多利亚日","Canada Day":"加拿大国庆","Labour Day":"劳动节","Thanksgiving":"感恩节","Christmas Day":"圣诞节","Boxing Day":"节礼日"};
+
+const DEF = {hourlyWage:17.20,overtimeThreshold:44,weekStartsMonday:true,holidayRate:1.5,autoStatHolidays:true,lastPayday:''};
+let lang='en';
+let S = {settings:{...DEF}, workData:{}, paydays:[]};
+let ui = {year:new Date().getFullYear(),month:new Date().getMonth(),selDate:toDS(new Date()),activeTab:'day',selPayslipId:null,addPaydayOpen:false,showPicker:false,pickerYear:new Date().getFullYear(),editEntryId:null};
+
+// ── Helpers ──
+function t(k,v){let s=L[lang][k]||L.en[k]||k;if(v)for(const x in v)s=s.replace('{'+x+'}',v[x]);return s;}
+function toDS(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fromDS(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function fmtCur(n){return'$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fmtHrs(h){const hrs=Math.floor(h),m=Math.round((h-hrs)*60);if(!hrs&&!m)return'0h';if(!m)return hrs+'h';return hrs+'h '+m+'m';}
+function calcHrs(s,e){const[sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);let st=sh*60+sm,et=eh*60+em;if(et<=st)et+=1440;return(et-st)/60;}
+function uid(){return Math.random().toString(36).slice(2,10);}
+function isWeekend(ds){const d=fromDS(ds).getDay();return d===0||d===6;}
+function today(){return toDS(new Date());}
+function getDayData(ds){return S.workData[ds]||{isHoliday:false,entries:[]};}
+function getDayHrs(ds){return getDayData(ds).entries.reduce((s,e)=>s+calcHrs(e.start,e.end),0);}
+function isStatHol(ds){return!!STAT_HOL[ds];}
+function isEffHol(ds){return getDayData(ds).isHoliday||(S.settings.autoStatHolidays&&isStatHol(ds));}
+function round2(n){return Math.round(n*100)/100;}
+function fmtDateShort(ds){const d=fromDS(ds);if(lang==='zh')return`${d.getMonth()+1}月${d.getDate()}日`;return t('monthsS')[d.getMonth()]+' '+d.getDate();}
+function fmtDateFull(ds){
+  const d=fromDS(ds);
+  if(lang==='zh')return`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${t('days')[d.getDay()]}`;
+  return `${t('days')[d.getDay()]}, ${t('months')[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+// ── Pay period for a given payday ──
+function getPeriodForPayday(paydayDS){
+  const d=fromDS(paydayDS);
+  const dow=d.getDay();
+  const daysToMon=dow===0?6:dow-1;
+  const thisMon=new Date(d);
+  thisMon.setDate(d.getDate()-daysToMon);
+  const periodEnd=new Date(thisMon);
+  periodEnd.setDate(thisMon.getDate()-1);
+  const periodStart=new Date(periodEnd);
+  periodStart.setDate(periodEnd.getDate()-13);
+  return{start:toDS(periodStart),end:toDS(periodEnd)};
+}
+
+// ── Calendar highlights ──
+function getCalHighlights(){
+  const paydaySet=new Set();
+  const periodSet=new Set();
+  for(const pd of S.paydays){
+    paydaySet.add(pd.date);
+  }
+  // Only highlight pay period when a payslip is actively selected in Payroll tab
+  if(ui.selPayslipId){
+    const sel=S.paydays.find(p=>p.id===ui.selPayslipId);
+    if(sel){
+      const{start,end}=getPeriodForPayday(sel.date);
+      const cur=fromDS(start),last=fromDS(end);
+      while(cur<=last){periodSet.add(toDS(new Date(cur)));cur.setDate(cur.getDate()+1);}
+    }
+  }
+  return{paydaySet,periodSet};
+}
+
+// ── Persistence ──
+function save(){
+  try{
+    localStorage.setItem('wt3_set',JSON.stringify(S.settings));
+    localStorage.setItem('wt3_data',JSON.stringify(S.workData));
+    localStorage.setItem('wt3_pd',JSON.stringify(S.paydays));
+  }catch(e){}
+}
+function load(){
+  try{
+    const s=localStorage.getItem('wt3_set');
+    const d=localStorage.getItem('wt3_data');
+    const p=localStorage.getItem('wt3_pd');
+    if(s)S.settings={...DEF,...JSON.parse(s)};
+    if(d)S.workData=JSON.parse(d);
+    if(p)S.paydays=JSON.parse(p);
+    const l=localStorage.getItem('wt3_lang');
+    if(l==='zh'||l==='en')lang=l;
+  }catch(e){}
+}
+
+// ── Tax (Ontario 2025) ──
+function calcTax(gross){
+  const fP=16129,fTx=Math.max(0,gross-fP);
+  const fBkt=[[57375,.15],[114750,.205],[158519,.26],[220000,.29],[Infinity,.33]];
+  let fed=0,pv=0;for(const[top,r]of fBkt){if(fTx<=pv)break;fed+=(Math.min(fTx,top)-pv)*r;pv=top;}
+  fed=Math.max(0,fed-fP*.15);
+  const oP=11865,oTx=Math.max(0,gross-oP);
+  const oBkt=[[51446,.0505],[102894,.0915],[150000,.1116],[220000,.1216],[Infinity,.1316]];
+  let prv=0;pv=0;for(const[top,r]of oBkt){if(oTx<=pv)break;prv+=(Math.min(oTx,top)-pv)*r;pv=top;}
+  prv=Math.max(0,prv-oP*.0505);
+  const cpp=Math.min(Math.max(0,gross-3500)*.0595,4034.10);
+  const ei=Math.min(gross*.0166,1049.12);
+  const tot=fed+prv+cpp+ei;
+  return{federal:round2(fed),provincial:round2(prv),cpp:round2(cpp),ei:round2(ei),total:round2(tot),net:round2(gross-tot),rate:gross>0?round2(tot/gross*100):0};
+}
+
+// ── Period pay calc ──
+function calcPeriodPay(startDS,endDS){
+  const dates=[];const cur=fromDS(startDS),end=fromDS(endDS);
+  while(cur<=end){dates.push(toDS(new Date(cur)));cur.setDate(cur.getDate()+1);}
+  const wkS=S.settings.weekStartsMonday?1:0;
+  const weeks=[];let wk=null;
+  for(const ds of dates){const dow=fromDS(ds).getDay();if(!wk||dow===wkS){if(wk)weeks.push(wk);wk=[];}wk.push(ds);}
+  if(wk&&wk.length)weeks.push(wk);
+  const rate=S.settings.hourlyWage,ot=S.settings.overtimeThreshold||44,hr=S.settings.holidayRate||1.5;
+  let rH=0,oH=0,hH=0,rP=0,oP=0,hP=0,dW=0;
+  for(const wk of weeks){
+    let wkH=0,wkHH=0;
+    for(const ds of wk){const hrs=getDayHrs(ds);if(hrs>0)dW++;if(isEffHol(ds)&&hrs>0){wkHH+=hrs;hH+=hrs;hP+=hrs*rate*hr;}else{wkH+=hrs;}}
+    const reg=Math.min(wkH,ot),ove=Math.max(0,wkH-ot);
+    rH+=reg;oH+=ove;rP+=reg*rate;oP+=ove*rate*1.5;
+  }
+  const gross=rP+oP+hP,ann=gross*26,tax=calcTax(ann),bwT=tax.total/26;
+  return{dates,regHrs:rH,otHrs:oH,holHrs:hH,regPay:round2(rP),otPay:round2(oP),holPay:round2(hP),grossPay:round2(gross),
+    tax:{federal:round2(tax.federal/26),provincial:round2(tax.provincial/26),cpp:round2(tax.cpp/26),ei:round2(tax.ei/26),total:round2(bwT)},
+    netPay:round2(gross-bwT),effectiveRate:tax.rate,daysWorked:dW};
+}
+
+// ── All dates already covered by recorded paydays ──
+function getCoveredDates(){
+  const set=new Set();
+  for(const pd of S.paydays){
+    const{start,end}=getPeriodForPayday(pd.date);
+    const cur=fromDS(start),last=fromDS(end);
+    while(cur<=last){set.add(toDS(new Date(cur)));cur.setDate(cur.getDate()+1);}
+  }
+  return set;
+}
+
+// ── Get latest payday DS (from records or settings) ──
+function getLatestPaydayDS(){
+  if(S.paydays.length){
+    return S.paydays.reduce((a,b)=>a.date>b.date?a:b).date;
+  }
+  return S.settings.lastPayday||'';
+}
+
+function getUpcomingPeriods(){
+  const latestPD=getLatestPaydayDS();
+  if(!latestPD)return[];
+
+  let p1Start;
+  if(S.paydays.length){
+    // Start from the day after the covered period of the latest payday
+    // (covered period always ends on a Sunday, so +1 = Monday)
+    const{end:covEnd}=getPeriodForPayday(latestPD);
+    const d=fromDS(covEnd);d.setDate(d.getDate()+1);
+    p1Start=d;
+  }else{
+    // Fallback: settings-only lastPayday, start next day
+    const d=fromDS(latestPD);d.setDate(d.getDate()+1);
+    p1Start=d;
+  }
+
+  const p1e=new Date(p1Start);p1e.setDate(p1e.getDate()+13);
+  const p2s=new Date(p1e);p2s.setDate(p2s.getDate()+1);
+  const p2e=new Date(p2s);p2e.setDate(p2e.getDate()+13);
+  return[
+    {label:t('currentPeriod'),start:toDS(p1Start),end:toDS(p1e),...calcPeriodPay(toDS(p1Start),toDS(p1e))},
+    {label:t('nextPeriod'),start:toDS(p2s),end:toDS(p2e),...calcPeriodPay(toDS(p2s),toDS(p2e))}
+  ];
+}
+
+// ══════════════════════════════════════
+//  RENDER CALENDAR
+// ══════════════════════════════════════
+function renderCalendar(){
+  const y=ui.year,m=ui.month,td=today();
+  const nowY=new Date().getFullYear(),nowM=new Date().getMonth();
+  // Title with picker arrow
+  const titleEl=document.getElementById('calTitle');
+  titleEl.innerHTML=`${t('months')[m]} <span>${y}</span> <span class="pick-arrow">▾</span>`;
+  titleEl.classList.toggle('picker-open',ui.showPicker);
+  document.getElementById('todayBtn').textContent=t('today');
+
+  // Picker
+  const picker=document.getElementById('monthPicker');
+  const calBody=document.getElementById('calBody');
+  picker.classList.toggle('open',ui.showPicker);
+  calBody.style.display=ui.showPicker?'none':'';
+  document.getElementById('calNavBtns').style.display=ui.showPicker?'none':'flex';
+  if(ui.showPicker){
+    document.getElementById('pickerYearLbl').textContent=ui.pickerYear;
+    const monthsArr=t('months');
+    document.getElementById('pickerMonths').innerHTML=monthsArr.map((mn,i)=>{
+      let cls='mpicker-m';
+      if(ui.pickerYear===nowY&&i===nowM)cls+=' this-month';
+      if(ui.pickerYear===y&&i===m)cls+=' cur-month';
+      return`<button class="${cls}" onclick="jumpToMonth(${i})">${lang==='zh'?mn.replace('月',''):mn.slice(0,3)}</button>`;
+    }).join('');
+    return; // skip calendar grid when picker open
+  }
+
+  const wkS=S.settings.weekStartsMonday?1:0;
+  const days=t('days');
+  const wdO=[...days.slice(wkS),...days.slice(0,wkS)];
+  document.getElementById('wdays').innerHTML=wdO.map(d=>`<div class="wday">${d}</div>`).join('');
+
+  const{paydaySet,periodSet}=getCalHighlights();
+  const firstDay=new Date(y,m,1).getDay();
+  const off=((firstDay-wkS)+7)%7;
+  const dim=new Date(y,m+1,0).getDate();
+  const prevD=new Date(y,m,0).getDate();
+
+  let cells='';
+  for(let i=off-1;i>=0;i--)cells+=`<div class="day other"><span class="dnum">${prevD-i}</span></div>`;
+
+  for(let d=1;d<=dim;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayData=getDayData(ds),hrs=getDayHrs(ds),isHol=isEffHol(ds);
+    const statName=S.settings.autoStatHolidays?STAT_HOL[ds]:null;
+    const manHol=dayData.isHoliday&&!statName;
+    const isToday=ds===td,isSel=ds===ui.selDate,isWknd=isWeekend(ds);
+    const isPD=paydaySet.has(ds),isPP=periodSet.has(ds)&&!isPD;
+
+    let cls='day';
+    if(isPD)cls+=' pd-day';
+    else if(isPP)cls+=' pp-day';
+    if(isHol)cls+=' holiday';
+    if(isWknd)cls+=' weekend';
+    if(isToday)cls+=' today';
+    if(isSel)cls+=' sel';
+
+    let inner=`<span class="dnum">${d}</span>`;
+    if(statName){
+      const sn=lang==='zh'?(STAT_HOL_ZH[statName]||statName):statName;
+      inner+=`<span class="dstat">${sn.split(' ')[0]}</span>`;
+    }else if(manHol){
+      inner+=`<span class="dstat">${t('statTag')}</span>`;
+    }
+    if(isPD)inner+=`<span class="dpay-tag">$</span>`;
+    if(hrs>0)inner+=`<span class="dhrs">${fmtHrs(hrs)}</span>`;
+
+    cells+=`<div class="${cls}" onclick="selectDay('${ds}')">${inner}</div>`;
+  }
+
+  const nextC=(7-((off+dim)%7))%7;
+  for(let d=1;d<=nextC;d++)cells+=`<div class="day other"><span class="dnum">${d}</span></div>`;
+  document.getElementById('daysGrid').innerHTML=cells;
+
+  // Banner — only count UNPAID days (exclude covered pay periods)
+  const covDates=getCoveredDates();
+  let mH=0,wD=0,hD=0;
+  for(let d=1;d<=dim;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const h=getDayHrs(ds);
+    if(!covDates.has(ds)){if(h>0){mH+=h;wD++;}if(isEffHol(ds))hD++;}
+  }
+  const hasPaid=S.paydays.length>0;
+  document.getElementById('monthBanner').innerHTML=`
+    <div class="mb-item"><div class="mb-val">${wD}</div><div class="mb-lbl">${t('workDays')}</div></div>
+    <div class="mb-div"></div>
+    <div class="mb-item"><div class="mb-val">${fmtHrs(mH)}</div><div class="mb-lbl">${t('totalHrs')}</div></div>
+    <div class="mb-div"></div>
+    <div class="mb-item"><div class="mb-val">${hD}</div><div class="mb-lbl">${t('holidays')}</div></div>
+    <div class="mb-div"></div>
+    <div class="mb-item"><div class="mb-val">${fmtCur(mH*S.settings.hourlyWage)}</div><div class="mb-lbl">${t('estGross')}</div></div>
+    ${hasPaid?`<div style="width:100%;text-align:center;font-size:9px;color:rgba(255,255,255,.6);padding-top:2px;letter-spacing:.3px">※ ${t('unpaidNote')}</div>`:''}`;
+
+  // Legend
+  document.getElementById('calLegend').innerHTML=`
+    <div class="leg-item"><div class="leg-dot" style="background:var(--pll);border:1.5px solid var(--p)"></div>${t('legToday')}</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--p)"></div>${t('legSel')}</div>
+    <div class="leg-item"><div class="leg-dot" style="background:linear-gradient(135deg,#FFE8E8,#FFD0D8)"></div>${t('legHol')}</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--pp-bg);border:1.5px solid var(--pp-brd)"></div>${t('legPeriod')}</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--pd-bg);border:1.5px solid var(--pd-brd)"></div>${t('legPayday')}</div>
+    <div class="leg-item"><div style="background:var(--pll);border:1.5px solid var(--pl);border-radius:5px;font-size:7px;font-weight:800;color:var(--p);padding:0 4px;white-space:nowrap;line-height:14px">3h</div>${t('legWork')}</div>`;
+}
+
+// ══════════════════════════════════════
+//  RENDER DAY TAB
+// ══════════════════════════════════════
+function renderDayTab(){
+  const ds=ui.selDate,dayData=getDayData(ds);
+  const d=fromDS(ds),hrs=getDayHrs(ds),isHol=isEffHol(ds);
+  const wage=S.settings.hourlyWage,hr=S.settings.holidayRate||1.5;
+  const statName=STAT_HOL[ds];
+
+  const editEntry=ui.editEntryId?getDayData(ds).entries.find(e=>e.id===ui.editEntryId):null;
+  document.getElementById('formSecLbl').textContent=editEntry?t('editEntry'):t('addWork');
+  document.getElementById('lblStart').textContent=t('startTime');
+  document.getElementById('lblEnd').textContent=t('endTime');
+  document.getElementById('lblNote').textContent=t('note');
+  document.getElementById('inpNote').placeholder=t('notePh');
+  document.getElementById('midnightHint').textContent=t('midnightHint');
+  document.getElementById('btnAdd').textContent=editEntry?t('updateEntry'):t('addEntry');
+  document.getElementById('btnClear').textContent=t('clear');
+  // Edit mode banner
+  const editBanner=document.getElementById('editBanner');
+  if(editBanner){
+    if(editEntry){editBanner.style.display='flex';document.getElementById('editBannerTxt').textContent=t('editEntry')+': '+editEntry.start+' → '+editEntry.end;document.getElementById('cancelEditBtn').textContent=t('cancelEdit');}
+    else{editBanner.style.display='none';}
+  }
+  // Preset label
+  const plbl=document.getElementById('presetLbl');if(plbl)plbl.textContent=t('presetShift');
+
+  if(lang==='zh'){
+    document.getElementById('dayDateBig').textContent=`${d.getMonth()+1}月${d.getDate()}日`;
+  }else{
+    document.getElementById('dayDateBig').textContent=`${d.getDate()} ${t('months')[d.getMonth()].slice(0,3)} ${d.getFullYear()}`;
+  }
+  document.getElementById('dayDateSub').textContent=fmtDateFull(ds);
+
+  let badges='';
+  if(statName){const sn=lang==='zh'?(STAT_HOL_ZH[statName]||statName):statName;badges+=`<span class="badge badge-hol">🏛 ${sn}</span>`;}
+  else if(dayData.isHoliday)badges+=`<span class="badge badge-hol">🎌 ${t('legHol')}</span>`;
+  if(hrs>0){
+    badges+=`<span class="badge badge-hrs">⏱ ${fmtHrs(hrs)}</span>`;
+    badges+=`<span class="badge badge-pay">≈ ${fmtCur(hrs*wage*(isHol?hr:1))}</span>`;
+    if(isHol)badges+=`<span class="badge badge-ot">${hr}×</span>`;
+  }
+  document.getElementById('dayBadges').innerHTML=badges;
+
+  const tog=document.getElementById('holToggle');
+  tog.classList.toggle('on',isHol);
+  document.getElementById('holSw').style.background=isHol?'var(--red)':'';
+  document.getElementById('holTitle').textContent=t('markHol');
+  document.getElementById('holSub').textContent=t('holSub',{r:hr});
+  const htag=document.getElementById('holTag');
+  if(statName){htag.textContent=t('holTagLabel');htag.style.display='inline';}
+  else{htag.style.display='none';}
+
+  const area=document.getElementById('entriesArea');
+  if(!dayData.entries||!dayData.entries.length){
+    const lines=t('noEntries').split('\n');
+    area.innerHTML=`<div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">${lines.join('<br>')}</div></div>`;
+  }else{
+    area.innerHTML=dayData.entries.map(e=>{
+      const h=calcHrs(e.start,e.end);
+      const endLbl=e.end<=e.start?e.end+(lang==='zh'?' (+次日)':' (+1d)'):e.end;
+      const isEditing=ui.editEntryId===e.id;
+      return`<div class="entry${isEditing?' entry-editing':''}">
+        <div class="entry-info">
+          <div class="entry-time">${e.start} → ${endLbl}</div>
+          ${e.note?`<div class="entry-note">📝 ${e.note}</div>`:''}
+        </div>
+        <span class="entry-hrs">${fmtHrs(h)}</span>
+        <button class="entry-edit" onclick="startEditEntry('${ds}','${e.id}')" title="${t('editEntry')}">✏️</button>
+        <button class="entry-del" onclick="deleteEntry('${ds}','${e.id}')">✕</button>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ══════════════════════════════════════
+//  RENDER PAYROLL TAB
+// ══════════════════════════════════════
+function renderPayrollTab(){
+  const sorted=[...S.paydays].sort((a,b)=>b.date.localeCompare(a.date));
+  let html='';
+
+  // ─ YTD Summary ─
+  const ytd=calcYTD();
+  if(ytd.totalHrs>0||ytd.pdCount>0){
+    html+=`<div class="ytd-box">
+      <div class="ytd-hdr">📊 ${t('ytdTitle')} ${ytd.year}</div>
+      <div class="ytd-grid">
+        <div class="ytd-col"><div class="ytd-col-val">${fmtHrs(ytd.totalHrs)}</div><div class="ytd-col-lbl">${t('ytdHours')}</div></div>
+        <div class="ytd-col"><div class="ytd-col-val" style="color:var(--p)">${fmtCur(ytd.totalGross)}</div><div class="ytd-col-lbl">${t('ytdGross')}</div></div>
+        <div class="ytd-col"><div class="ytd-col-val" style="color:var(--green)">${fmtCur(ytd.actualPaid)}</div><div class="ytd-col-lbl">${t('ytdPaid')} (${ytd.pdCount}×)</div></div>
+      </div>
+    </div>`;
+  }
+
+  // ─ Add payday form ─
+  html+=`<div class="add-payday-form">
+    <div class="add-payday-hdr" onclick="toggleAddPaydayForm()">
+      <span class="add-payday-hdr-title">${t('addPaydayRec')}</span>
+      <span style="font-size:14px;color:var(--p)">${ui.addPaydayOpen?'▴':'▾'}</span>
+    </div>
+    <div class="add-payday-body${ui.addPaydayOpen?' open':''}">
+      <div class="form-row" style="margin-bottom:8px">
+        <div class="fg"><label class="flbl">${t('paydayDate')}</label><input class="finp" type="date" id="pdDate" value="${today()}"></div>
+        <div class="fg"><label class="flbl">${t('netReceived')}</label>
+          <div style="position:relative"><span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--p)">$</span>
+          <input class="finp" type="number" id="pdNet" min="0" step="0.01" placeholder="0.00" style="padding-left:20px"></div>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:8px">
+        <div class="fg"><label class="flbl">${t('tipsReceived')}</label>
+          <div style="position:relative"><span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--orange)">$</span>
+          <input class="finp" type="number" id="pdTips" min="0" step="0.01" placeholder="0.00" style="padding-left:20px"></div>
+        </div>
+        <div class="fg"><label class="flbl">${t('paydayNote')}</label><input class="finp" type="text" id="pdNote" maxlength="40" placeholder="…"></div>
+      </div>
+      <button class="btn btn-p" onclick="savePayday()" style="width:100%">${t('savePayday')}</button>
+    </div>
+  </div>`;
+
+  // ─ History list ─
+  html+=`<div class="form-sec">${t('payslipHist')}</div>`;
+  if(!sorted.length){
+    html+=`<div class="empty" style="padding:18px"><div class="empty-ico">💸</div><div class="empty-txt">${t('noPayslips').replace('\n','<br>')}</div></div>`;
+  }else{
+    html+=`<div class="payslip-list-wrap">`;
+    for(const pd of sorted){
+      const active=pd.id===ui.selPayslipId;
+      html+=`<div class="ps-item${active?' active':''}" onclick="selectPayslip('${pd.id}')">
+        <div class="ps-dot"></div>
+        <div class="ps-info">
+          <div class="ps-date">${fmtDateFull(pd.date)}</div>
+          <div class="ps-meta">
+            <span class="ps-net">${fmtCur(pd.netPay)}</span>
+            ${pd.tips>0?`<span class="ps-tips">+${fmtCur(pd.tips)} ${lang==='zh'?'小费':'tips'}</span>`:''}
+            ${pd.notes?`<span style="font-size:10px;color:var(--sub)">· ${pd.notes}</span>`:''}
+          </div>
+        </div>
+        <button class="ps-del" onclick="deletePayslip(event,'${pd.id}')">✕</button>
+      </div>`;
+    }
+    html+=`</div>`;
+
+    // ─ Selected payslip detail ─
+    const sel=sorted.find(p=>p.id===ui.selPayslipId);
+    if(sel){
+      const{start,end}=getPeriodForPayday(sel.date);
+      const pp=calcPeriodPay(start,end);
+      const totalHrsWorked=pp.regHrs+pp.otHrs+pp.holHrs;
+      const diff=round2(sel.netPay-pp.netPay);
+      const total=round2(sel.netPay+sel.tips);
+      const sf=fmtDateShort(start),ef=fmtDateShort(end),yr=fromDS(end).getFullYear();
+      html+=`<div class="ps-detail">
+        <div class="ps-detail-hdr">
+          <span class="ps-detail-lbl">${fmtDateFull(sel.date)}</span>
+        </div>
+        <div class="ps-detail-body">
+          <div class="dr"><span class="dr-lbl">${t('periodCovered')}</span><span class="dr-val">${sf} – ${ef}, ${yr}</span></div>
+          <div class="dr"><span class="dr-lbl">${t('hoursLogged')}</span><span class="dr-val">${fmtHrs(totalHrsWorked)}</span></div>
+          ${pp.regHrs>0?`<div class="dr"><span class="dr-lbl">└ ${t('regHrs')}</span><span class="dr-val">${fmtHrs(pp.regHrs)} × ${fmtCur(S.settings.hourlyWage)}</span></div>`:''}
+          ${pp.otHrs>0?`<div class="dr"><span class="dr-lbl">└ ${t('otHrs')}</span><span class="dr-val" style="color:var(--orange)">${fmtHrs(pp.otHrs)} × 1.5×</span></div>`:''}
+          ${pp.holHrs>0?`<div class="dr"><span class="dr-lbl">└ ${t('holHrs')}</span><span class="dr-val" style="color:var(--red)">${fmtHrs(pp.holHrs)} × ${S.settings.holidayRate}×</span></div>`:''}
+          <div class="dr"><span class="dr-lbl">${t('estGrossPay')}</span><span class="dr-val">${fmtCur(pp.grossPay)}</span></div>
+
+          <!-- Pay Comparison Block -->
+          <div class="pay-compare">
+            <div class="pay-compare-title">${t('compareSection')}</div>
+            <div class="pay-compare-grid">
+              <div class="pay-compare-col">
+                <div class="pay-compare-col-lbl">${t('estNetPay')}</div>
+                <div class="pay-compare-col-val" style="color:var(--sub)">${fmtCur(pp.netPay)}</div>
+                <div class="pay-compare-col-sub">${lang==='zh'?'系统计算':'Calculated'}</div>
+              </div>
+              <div class="pay-compare-col">
+                <div class="pay-compare-col-lbl">${t('actualNet')}</div>
+                <div class="pay-compare-col-val" style="color:var(--p)">${fmtCur(sel.netPay)}</div>
+                <div class="pay-compare-col-sub">${lang==='zh'?'工资单实收':'From payslip'}</div>
+              </div>
+            </div>
+            <div class="pay-compare-diff">
+              <span class="pay-compare-diff-lbl">${t('diffLabel')}</span>
+              <span class="${diff>0?'diff-pos':diff<0?'diff-neg':'diff-zero'}">${diff>0?'+':''}${fmtCur(diff)}</span>
+            </div>
+          </div>
+
+          ${sel.tips>0?`<div class="dr" style="margin-top:7px"><span class="dr-lbl">${t('tips')}</span><span class="dr-val" style="color:var(--orange)">+${fmtCur(sel.tips)}</span></div>`:''}
+          <div class="dr sep"><span class="dr-lbl-big">${t('totalTakeHome')}</span><span class="dr-val-hi">${fmtCur(total)}</span></div>
+        </div>
+      </div>`;
+    }
+  }
+
+  // ─ Upcoming estimates ─
+  html+=`<div class="form-sec">${t('upcomingEst')}</div>`;
+  const latestPD=getLatestPaydayDS();
+  if(!latestPD){
+    html+=`<div class="no-payday"><div class="no-payday-ico">📅</div><div class="no-payday-txt">${t('noPaydayForUpcoming')}</div></div>`;
+    html+=`<div class="fg" style="margin-bottom:10px"><label class="flbl">${t('lastPayday')}</label><input class="finp" type="date" id="lastPaydayInp" ${S.settings.lastPayday?'value="'+S.settings.lastPayday+'"':''} onchange="saveLastPayday()"></div>`;
+  }else{
+    const periods=getUpcomingPeriods();
+    for(const p of periods){
+      const sf=fmtDateShort(p.start),ef=fmtDateShort(p.end),yr=fromDS(p.end).getFullYear();
+      const dLbl=p.daysWorked===1?t('daysLbl'):t('daysLblP');
+      const tid=`tax-${p.label.replace(/\s/g,'')}`;
+      const todayDS=today();
+      const inPeriod=todayDS>=p.start&&todayDS<=p.end;
+      let progressHTML='';
+      if(inPeriod){
+        const daysIn=Math.floor((new Date()-fromDS(p.start))/(86400000))+1;
+        const dLeft=14-daysIn;
+        const pct=Math.min(100,Math.round(daysIn/14*100));
+        progressHTML=`<div class="period-prog">
+          <div style="font-size:9.5px;font-weight:700;color:var(--p);margin-bottom:2px">📍 ${t('periodProgress')}</div>
+          <div class="period-prog-bar"><div class="period-prog-fill" style="width:${pct}%"></div></div>
+          <div class="period-prog-lbl"><span>${daysIn} ${t('daysIn')}</span><span>${dLeft} ${t('daysLeft')}</span></div>
+        </div>`;
+      }
+      html+=`<div class="pp">
+        <div class="pp-hdr">
+          <div><div class="pp-lbl">${p.label}</div><div class="pp-dates">${sf} – ${ef}, ${yr}</div></div>
+          <div style="text-align:right">
+            <div style="font-size:15px;font-weight:800;color:var(--p)">${fmtCur(p.grossPay)}</div>
+            <div style="font-size:9.5px;color:var(--sub);margin-top:1px">${p.daysWorked} ${dLbl} · ${fmtHrs(p.regHrs+p.otHrs+p.holHrs)}</div>
+          </div>
+        </div>
+        <div class="pp-body">
+          ${progressHTML}
+          ${p.regHrs>0?`<div class="pr"><span class="pr-lbl">${t('regular')} (${fmtHrs(p.regHrs)} × ${fmtCur(S.settings.hourlyWage)})</span><span class="pr-val">${fmtCur(p.regPay)}</span></div>`:''}
+          ${p.otHrs>0?`<div class="pr"><span class="pr-lbl">${t('overtime')} (${fmtHrs(p.otHrs)} × 1.5×)</span><span class="pr-val" style="color:var(--orange)">${fmtCur(p.otPay)}</span></div>`:''}
+          ${p.holHrs>0?`<div class="pr"><span class="pr-lbl">${t('holiday')} (${fmtHrs(p.holHrs)} × ${S.settings.holidayRate}×)</span><span class="pr-val" style="color:var(--red)">${fmtCur(p.holPay)}</span></div>`:''}
+          ${p.grossPay===0?`<div style="font-size:11.5px;color:var(--sub);text-align:center;padding:6px 0">${t('noHrsLogged')}</div>`:''}
+          <div class="pr sep"><span class="pr-lbl-big">${t('grossPay')}</span><span class="pr-val-gross">${fmtCur(p.grossPay)}</span></div>
+          ${p.grossPay>0?`
+          <div class="tax-box">
+            <div class="tax-title-row">
+              <span class="tax-title">${t('estDed',{r:p.effectiveRate})}</span>
+              <button class="tax-toggle" onclick="toggleTax('${tid}')">${t('details')}</button>
+            </div>
+            <div class="tax-rows" id="${tid}">
+              <div class="pr" style="padding-top:6px"><span class="pr-lbl">${t('federal')}</span><span class="pr-val">−${fmtCur(p.tax.federal)}</span></div>
+              <div class="pr"><span class="pr-lbl">${t('provincial')}</span><span class="pr-val">−${fmtCur(p.tax.provincial)}</span></div>
+              <div class="pr"><span class="pr-lbl">${t('cpp')}</span><span class="pr-val">−${fmtCur(p.tax.cpp)}</span></div>
+              <div class="pr"><span class="pr-lbl">${t('ei')}</span><span class="pr-val">−${fmtCur(p.tax.ei)}</span></div>
+              <div class="pr sep"><span class="pr-lbl-big">${t('totalDed')}</span><span class="pr-val" style="color:var(--red)">−${fmtCur(p.tax.total)}</span></div>
+            </div>
+          </div>
+          <div class="pr" style="margin-top:6px"><span class="pr-lbl-big">${t('estNet')}</span><span class="pr-val-net">${fmtCur(p.netPay)}</span></div>`:''}
+        </div>
+      </div>`;
+    }
+  }
+
+  html+=`<div class="pay-note">${t('taxNote')}</div>`;
+  document.getElementById('payrollContent').innerHTML=html;
+}
+
+// ══════════════════════════════════════
+//  RENDER SETTINGS TAB
+// ══════════════════════════════════════
+function renderSettingsTab(){
+  const set=S.settings;
+  document.getElementById('settingsContent').innerHTML=`
+    <div class="set-section">
+      <div class="set-section-title">${t('wageSettings')}</div>
+      <div class="set-row">
+        <div class="set-info"><div class="set-lbl">${t('baseWage')}</div><div class="set-sub">${t('wageSub')}</div></div>
+        <div class="wage-wrap"><span class="wage-sym">$</span>
+          <input class="finp wage-inp" type="number" min="0" step="0.01" value="${set.hourlyWage}" onchange="saveSetting('hourlyWage',parseFloat(this.value)||17.20)"></div>
+      </div>
+      <div class="set-row">
+        <div class="set-info"><div class="set-lbl">${t('otThreshold')}</div><div class="set-sub">${t('otSub')}</div></div>
+        <div class="wage-wrap" style="width:125px">
+          <input class="finp" style="width:125px;text-align:right;padding-right:24px" type="number" min="1" max="80" step="1" value="${set.overtimeThreshold}" onchange="saveSetting('overtimeThreshold',parseInt(this.value)||44)">
+          <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:11.5px;color:var(--sub);font-weight:600">h</span>
+        </div>
+      </div>
+      <div class="set-row">
+        <div class="set-info"><div class="set-lbl">${t('weekStarts')}</div><div class="set-sub">${t('weekSub')}</div></div>
+        <select class="finp set-sel" style="width:125px" onchange="saveSetting('weekStartsMonday',this.value==='monday')">
+          <option value="monday" ${set.weekStartsMonday?'selected':''}>${t('monday')}</option>
+          <option value="sunday" ${!set.weekStartsMonday?'selected':''}>${t('sunday')}</option>
+        </select>
+      </div>
+      <div class="set-row">
+        <div class="set-info"><div class="set-lbl">${t('holRate')}</div><div class="set-sub">${t('holRateSub')}</div></div>
+        <div class="wage-wrap" style="width:125px">
+          <input class="finp" style="width:125px;text-align:right;padding-right:24px" type="number" min="1" max="3" step="0.1" value="${set.holidayRate}" onchange="saveSetting('holidayRate',parseFloat(this.value)||1.5)">
+          <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:11.5px;color:var(--sub);font-weight:600">×</span>
+        </div>
+      </div>
+    </div>
+    <div class="set-section">
+      <div class="set-section-title">${t('statHolSec')}</div>
+      <div style="font-size:11.5px;color:var(--sub);margin-bottom:8px;line-height:1.5">${t('statHolDesc')}</div>
+      <div class="stat-hol-toggle ${set.autoStatHolidays?'on':''}" onclick="toggleStatHolidays()">
+        <div class="sw" style="background:${set.autoStatHolidays?'var(--p)':''}"></div>
+        <div class="sw-text"><div class="sw-title">${t('autoStatHol')}</div><div class="sw-sub">${t('autoStatHolSub')}</div></div>
+      </div>
+    </div>
+    <div class="set-section">
+      <div class="set-section-title">${t('dataSec')}</div>
+      <div class="set-row" style="padding:8px 0">
+        <div class="set-info"><div class="set-lbl">${t('clearData')}</div><div class="set-sub">${t('clearDataSub')}</div></div>
+        <button class="btn btn-danger btn-sm" onclick="clearAllData()">${t('clearBtn')}</button>
+      </div>
+      <div class="set-row" style="padding:8px 0">
+        <div class="set-info"><div class="set-lbl">${t('clearPaydays')}</div><div class="set-sub">${t('clearPaydaysSub')}</div></div>
+        <button class="btn btn-danger btn-sm" onclick="clearAllPaydays()">${t('clearBtn')}</button>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════
+function selectDay(ds){ui.selDate=ds;ui.showPicker=false;switchTab('day');renderCalendar();renderDayTab();}
+function prevMonth(){ui.month--;if(ui.month<0){ui.month=11;ui.year--;}renderCalendar();}
+function nextMonth(){ui.month++;if(ui.month>11){ui.month=0;ui.year++;}renderCalendar();}
+
+// ── Month/Year Picker ──
+function toggleMonthPicker(){
+  ui.showPicker=!ui.showPicker;
+  if(ui.showPicker) ui.pickerYear=ui.year;
+  renderCalendar();
+}
+function pickerPrevYear(){ui.pickerYear--;renderCalendar();}
+function pickerNextYear(){ui.pickerYear++;renderCalendar();}
+function jumpToMonth(m){
+  ui.year=ui.pickerYear; ui.month=m; ui.showPicker=false;
+  renderCalendar();
+}
+function editPickerYear(){
+  document.getElementById('pickerYearLbl').style.display='none';
+  const inp=document.getElementById('pickerYearInp');
+  inp.style.display='inline-block'; inp.value=ui.pickerYear; inp.focus(); inp.select();
+}
+function confirmPickerYear(){
+  const inp=document.getElementById('pickerYearInp');
+  const val=parseInt(inp.value);
+  if(val>=2000&&val<=2099) ui.pickerYear=val;
+  inp.style.display='none';
+  document.getElementById('pickerYearLbl').style.display='';
+  renderCalendar();
+}
+function cancelPickerYear(){
+  document.getElementById('pickerYearInp').style.display='none';
+  document.getElementById('pickerYearLbl').style.display='';
+}
+function goToday(){const n=new Date();ui.year=n.getFullYear();ui.month=n.getMonth();ui.selDate=toDS(n);switchTab('day');renderCalendar();renderDayTab();}
+
+function switchTab(tab){
+  ui.activeTab=tab;
+  ['day','payroll','settings'].forEach(t=>{
+    document.getElementById(`tab-${t}`).classList.toggle('active',t===tab);
+    document.getElementById(`tab-${t}-content`).style.display=t===tab?'':'none';
+  });
+  renderTabBar();
+  if(tab==='payroll')renderPayrollTab();
+  if(tab==='settings')renderSettingsTab();
+}
+
+function renderTabBar(){
+  document.getElementById('tab-day').textContent=t('tabDay');
+  document.getElementById('tab-payroll').textContent=t('tabPayroll');
+  document.getElementById('tab-settings').textContent=t('tabSettings');
+}
+
+function toggleHoliday(){
+  const ds=ui.selDate;
+  if(S.settings.autoStatHolidays&&isStatHol(ds))return;
+  if(!S.workData[ds])S.workData[ds]={isHoliday:false,entries:[]};
+  S.workData[ds].isHoliday=!S.workData[ds].isHoliday;
+  save();renderDayTab();renderCalendar();
+  const r=S.settings.holidayRate||1.5;
+  toast(S.workData[ds].isHoliday?t('markedHol',{r}):t('unmarkedHol'),S.workData[ds].isHoliday?'ok':'');
+}
+function toggleStatHolidays(){S.settings.autoStatHolidays=!S.settings.autoStatHolidays;save();renderSettingsTab();renderCalendar();toast(S.settings.autoStatHolidays?t('autoStatOn'):t('autoStatOff'));}
+
+function addEntry(){
+  const start=document.getElementById('inpStart').value;
+  const end=document.getElementById('inpEnd').value;
+  const note=document.getElementById('inpNote').value.trim();
+  if(!start||!end){toast(t('enterTimes'),'err');return;}
+  const hrs=calcHrs(start,end);
+  if(hrs<=0){toast(t('invalidRange'),'err');return;}
+  if(hrs>24){toast(t('tooLong'),'err');return;}
+  const ds=ui.selDate;
+  if(!S.workData[ds])S.workData[ds]={isHoliday:false,entries:[]};
+  if(ui.editEntryId){
+    const idx=S.workData[ds].entries.findIndex(e=>e.id===ui.editEntryId);
+    if(idx>=0)S.workData[ds].entries[idx]={...S.workData[ds].entries[idx],start,end,note};
+    ui.editEntryId=null;
+  }else{
+    S.workData[ds].entries.push({id:uid(),start,end,note});
+  }
+  save();renderDayTab();renderCalendar();clearForm();
+  toast(t('entryAdded',{h:fmtHrs(hrs)}),'ok');
+}
+function startEditEntry(ds,id){
+  const entry=getDayData(ds).entries.find(e=>e.id===id);
+  if(!entry)return;
+  ui.editEntryId=id;
+  document.getElementById('inpStart').value=entry.start;
+  document.getElementById('inpEnd').value=entry.end;
+  document.getElementById('inpNote').value=entry.note||'';
+  checkMidnight();renderDayTab();
+  document.getElementById('formWrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function cancelEditEntry(){ui.editEntryId=null;clearForm();renderDayTab();}
+function fillPreset(hrs){
+  const sh=9,sm=0,totM=sh*60+sm+Math.round(hrs*60);
+  const eh=Math.floor(totM/60)%24,em=totM%60;
+  document.getElementById('inpStart').value=`${String(sh).padStart(2,'0')}:${String(sm).padStart(2,'0')}`;
+  document.getElementById('inpEnd').value=`${String(eh).padStart(2,'0')}:${String(em).padStart(2,'0')}`;
+  checkMidnight();
+}
+function deleteEntry(ds,id){
+  if(!S.workData[ds])return;
+  if(ui.editEntryId===id){ui.editEntryId=null;clearForm();}
+  S.workData[ds].entries=S.workData[ds].entries.filter(e=>e.id!==id);
+  if(!S.workData[ds].entries.length&&!S.workData[ds].isHoliday)delete S.workData[ds];
+  save();renderDayTab();renderCalendar();toast(t('entryRemoved'));
+}
+function clearForm(){
+  document.getElementById('inpStart').value='';
+  document.getElementById('inpEnd').value='';
+  document.getElementById('inpNote').value='';
+  document.getElementById('midnightHint').classList.remove('show');
+  if(ui.editEntryId){ui.editEntryId=null;renderDayTab();}
+}
+function checkMidnight(){
+  const s=document.getElementById('inpStart').value,e=document.getElementById('inpEnd').value;
+  document.getElementById('midnightHint').classList.toggle('show',!!(s&&e&&e<=s));
+}
+function calcYTD(){
+  const y=new Date().getFullYear();
+  let totalH=0,totalGross=0;
+  for(const ds of Object.keys(S.workData)){
+    if(!ds.startsWith(String(y)))continue;
+    const h=getDayHrs(ds);if(h<=0)continue;
+    const rate=S.settings.hourlyWage*(isEffHol(ds)?S.settings.holidayRate:1);
+    totalH+=h;totalGross+=h*rate;
+  }
+  const pdThisYear=S.paydays.filter(pd=>pd.date.startsWith(String(y)));
+  const actualPaid=pdThisYear.reduce((s,pd)=>s+pd.netPay+(pd.tips||0),0);
+  return{totalHrs:round2(totalH),totalGross:round2(totalGross),pdCount:pdThisYear.length,actualPaid:round2(actualPaid),year:y};
+}
+
+// Payday actions
+function toggleAddPaydayForm(){ui.addPaydayOpen=!ui.addPaydayOpen;renderPayrollTab();}
+function selectPayslip(id){ui.selPayslipId=ui.selPayslipId===id?null:id;renderPayrollTab();renderCalendar();}
+function savePayday(){
+  const dateEl=document.getElementById('pdDate');
+  const netEl=document.getElementById('pdNet');
+  const tipsEl=document.getElementById('pdTips');
+  const noteEl=document.getElementById('pdNote');
+  if(!dateEl||!dateEl.value){toast(t('enterTimes'),'err');return;}
+  const pd={id:uid(),date:dateEl.value,netPay:parseFloat(netEl.value)||0,tips:parseFloat(tipsEl.value)||0,notes:(noteEl?noteEl.value.trim():'')};
+  S.paydays.push(pd);
+  // Update lastPayday in settings if newer
+  if(!S.settings.lastPayday||pd.date>S.settings.lastPayday)S.settings.lastPayday=pd.date;
+  S.paydays.sort((a,b)=>b.date.localeCompare(a.date));
+  ui.selPayslipId=pd.id;
+  ui.addPaydayOpen=false;
+  save();renderCalendar();renderPayrollTab();
+  toast(t('paydaySaved'),'ok');
+}
+function deletePayslip(e,id){
+  e.stopPropagation();
+  if(!confirm(t('confirmClearPd')))return;
+  S.paydays=S.paydays.filter(p=>p.id!==id);
+  if(ui.selPayslipId===id)ui.selPayslipId=null;
+  save();renderCalendar();renderPayrollTab();toast(t('paydayDeleted'));
+}
+function saveLastPayday(){
+  const el=document.getElementById('lastPaydayInp');
+  if(el){S.settings.lastPayday=el.value;save();renderPayrollTab();}
+}
+function saveSetting(key,val){S.settings[key]=val;save();renderCalendar();if(ui.activeTab==='payroll')renderPayrollTab();toast(t('settingSaved'),'ok');}
+function clearAllData(){if(!confirm(t('confirmClear')))return;S.workData={};save();renderCalendar();renderDayTab();toast(t('entryRemoved'));}
+function clearAllPaydays(){if(!confirm(t('confirmClearPaydays')))return;S.paydays=[];S.settings.lastPayday='';ui.selPayslipId=null;save();renderCalendar();if(ui.activeTab==='payroll')renderPayrollTab();}
+function toggleTax(id){const el=document.getElementById(id);if(!el)return;el.classList.toggle('open');const btn=el.previousElementSibling.querySelector('.tax-toggle');if(btn)btn.textContent=el.classList.contains('open')?t('hide'):t('details');}
+
+// Lang toggle
+function toggleLang(){
+  lang=lang==='en'?'zh':'en';
+  localStorage.setItem('wt3_lang',lang);
+  applyLangToHeader();
+  renderAll();
+}
+function applyLangToHeader(){
+  document.getElementById('langBtn').textContent=t('langSwitch');
+  document.getElementById('hdrTitle').textContent=t('appName');
+  document.getElementById('hdrSub').textContent=t('appSub');
+  document.getElementById('exportBtn').title=t('exported').replace(' ✓','');
+  document.getElementById('importBtn').title=t('imported').replace(' ✓','');
+}
+
+// Export / Import
+function exportData(){
+  const blob=new Blob([JSON.stringify({version:3,settings:S.settings,workData:S.workData,paydays:S.paydays},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`worktime-${today()}.json`;a.click();URL.revokeObjectURL(a.href);
+  toast(t('exported'),'ok');
+}
+function importData(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+    r.onload=ev=>{try{const d=JSON.parse(ev.target.result);
+      if(d.settings)S.settings={...DEF,...d.settings};
+      if(d.workData)S.workData=d.workData;
+      if(d.paydays)S.paydays=d.paydays;
+      save();renderAll();toast(t('imported'),'ok');}catch(err){toast(t('invalidFile'),'err');}};r.readAsText(f);};
+  inp.click();
+}
+
+// Toast
+let toastT=null;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');el.textContent=msg;
+  el.className='toast'+(type?' '+type:'')+' show';
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+// ══════════════════════════════════════
+//  RENDER ALL + INIT
+// ══════════════════════════════════════
+function renderAll(){
+  renderTabBar();renderCalendar();renderDayTab();
+  if(ui.activeTab==='payroll')renderPayrollTab();
+  if(ui.activeTab==='settings')renderSettingsTab();
+}
+
+load();
+applyLangToHeader();
+renderAll();
+
+// Close picker when clicking outside
+document.addEventListener('click',ev=>{
+  if(!ui.showPicker)return;
+  const picker=document.getElementById('monthPicker');
+  const title=document.getElementById('calTitle');
+  if(!picker.contains(ev.target)&&!title.contains(ev.target)){
+    ui.showPicker=false;renderCalendar();
+  }
+});
+
+// Keyboard navigation
+document.addEventListener('keydown',ev=>{
+  if(ev.target.tagName==='INPUT'||ev.target.tagName==='TEXTAREA'||ev.target.tagName==='SELECT')return;
+  if(ev.key==='Escape'&&ui.showPicker){ui.showPicker=false;renderCalendar();return;}
+  const c=fromDS(ui.selDate);
+  const off={ArrowLeft:-1,ArrowRight:1,ArrowUp:-7,ArrowDown:7}[ev.key];
+  if(off){c.setDate(c.getDate()+off);ui.year=c.getFullYear();ui.month=c.getMonth();selectDay(toDS(c));ev.preventDefault();}
+  if(ev.key==='t'||ev.key==='T')goToday();
+});
+</script>
+</body>
+</html>
