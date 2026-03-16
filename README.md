@@ -91,7 +91,7 @@ Just open it in any browser — your data stays in your browser, forever private
 
 ```bash
 # 克隆或直接下载
-git clone https://github.com/your-username/worktime-tracker.git
+git clone https://github.com/Pendrellvale/WorkTimeRecord.git
 
 # 用浏览器打开（无需任何构建步骤）
 open index.html
