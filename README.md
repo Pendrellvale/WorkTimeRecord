@@ -7,7 +7,7 @@
 
 ## 截图 · Screenshots
 
-![image-20260317010001447](C:\Users\TIANY\AppData\Roaming\Typora\typora-user-images\image-20260317010001447.png)
+![image-20260317010001447](image-20260317010001447.png)
 
 | 日历视图 Calendar | 薪酬预估 Payroll | 工资单对比 Payslip |
 |:-:|:-:|:-:|
